@@ -1,6 +1,6 @@
 package game
 
-import "fmt"
+import "errors"
 
 type Game struct {
 	board    [][]int
@@ -10,7 +10,7 @@ type Game struct {
 	winner   int
 }
 
-func NewGame(size int) *Game {
+func NewGame(size int) Game {
 	newBoard := [][]int{}
 	for i := 0; i < size; i++ {
 		newRow := []int{}
@@ -19,21 +19,22 @@ func NewGame(size int) *Game {
 		}
 		newBoard = append(newBoard, newRow)
 	}
-	game := &Game{
+	game := Game{
 		size:     size,
 		board:    newBoard,
 		player:   1,
 		moveList: []Move{},
+		winner:   0,
 	}
 	return game
 }
 
-func (g *Game) LegalMoves() []*Move {
-	moves := []*Move{}
+func (g *Game) LegalMoves() []Move {
+	moves := []Move{}
 	for i := 0; i < g.size; i++ {
 		for j := 0; j < g.size; j++ {
 			if g.board[i][j] == 0 {
-				move := &Move{
+				move := Move{
 					s1:     i,
 					s2:     j,
 					player: g.player,
@@ -45,76 +46,79 @@ func (g *Game) LegalMoves() []*Move {
 	return moves
 }
 
-func (g *Game) Move(x int, y int) bool {
+func (g *Game) Move(x int, y int) (Game, error) {
 	move := Move{s1: x, s2: y, player: g.player}
-	z := g.PushMove(move)
-	return z
+	return g.PushMove(move)
 }
 
-func (g *Game) PushMove(move Move) bool {
-	if move.s1 >= g.size || move.s2 >= g.size || g.board[move.s1][move.s1] != 0 || g.winner != 0 {
-		return false
+func (g *Game) PushMove(move Move) (Game, error) {
+	if move.s1 >= g.size || move.s2 >= g.size || g.board[move.s1][move.s2] != 0 || g.winner != 0 {
+		return *g, errors.New("invalid move")
 	}
-	g.board[move.s1][move.s2] = g.player
-	g.moveList = append(g.moveList, move)
-	g.updateGameStatus()
-	return true
+	newGame := *g
+	newGame.board = make([][]int, len(g.board))
+	for i := range g.board {
+		newGame.board[i] = make([]int, len(g.board[i]))
+		copy(newGame.board[i], g.board[i])
+	}
+	newGame.board[move.s1][move.s2] = newGame.player
+	newGame.moveList = append(newGame.moveList, move)
+	newGame.updateGameStatus()
+	return newGame, nil
 }
 
-func (g *Game) Revert() bool {
-	if len(g.moveList) <= 0 {
-		return false
+func (g *Game) PrintGameStatus() string {
+	if !g.IsGameOver() {
+		return "game not finished"
+	} else if g.winner == 1 {
+		return "X gon give it to ya"
+	} else if g.winner == -1 {
+		return "O-nly I can win"
+	} else {
+		return "it's a draw... zzz"
 	}
-	revertMove := g.moveList[len(g.moveList)-1]
-	g.board[revertMove.s1][revertMove.s2] = 0
-	g.moveList = g.moveList[:len(g.moveList)-1]
-	g.updateGameStatus()
-	return true
 }
 
-func (g *Game) CheckGameStatus() bool {
-	if g.winner != 0 {
-		return true
-	}
-	if len(g.moveList) < g.size*g.size {
-		return false
-	}
-	return true
+func (g *Game) GetGameStatus() int {
+	return g.winner
 }
 
 func (g *Game) IsGameOver() bool {
-	return g.winner != 0
+	return g.winner != 0 || len(g.moveList) == g.size*g.size
 }
 
-func (g *Game) PrintBoard() {
+func (g *Game) PrintBoard() string {
+	boardString := ""
 	for i := 0; i < g.size; i++ {
 		for j := 0; j < g.size; j++ {
 			switch g.board[i][j] {
 			case 0:
-				fmt.Print("   ")
+				boardString += "   "
 			case 1:
-				fmt.Print(" X ")
+				boardString += " X "
 			case -1:
-				fmt.Print(" O ")
+				boardString += " O "
 			}
 			if j < g.size-1 {
-				fmt.Print("|")
+				boardString += "|"
 			}
 		}
-		fmt.Println()
+		boardString += "\n"
 		if i < g.size-1 {
-			fmt.Println("---|---|---")
+			boardString += "---|---|---\n"
 		}
 	}
+	return boardString
 }
 
 func (g *Game) updateGameStatus() {
 	g.changePlayer()
-	rowSum := 0
-	colSum := 0
+
 	diagSum1 := 0
 	diagSum2 := 0
 	for i := 0; i < g.size; i++ {
+		rowSum := 0
+		colSum := 0
 		for j := 0; j < g.size; j++ {
 			rowSum += g.board[i][j]
 			colSum += g.board[j][i]
