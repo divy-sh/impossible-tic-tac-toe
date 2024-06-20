@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"math"
 	"tic-tac-toe/game"
 )
@@ -16,7 +15,6 @@ func Eval(game game.Game) *game.Move {
 	for _, move := range moves {
 		newBoard, _ := game.PushMove(move)
 		score := -negamax(newBoard, -math.MaxFloat64, math.MaxFloat64, false)
-		fmt.Println(move, score)
 		if score > bestScore {
 			bestScore = score
 			bestMove = move

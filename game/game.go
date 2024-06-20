@@ -3,11 +3,11 @@ package game
 import "errors"
 
 type Game struct {
-	board    [][]int
+	Board    [][]int
 	size     int
-	player   int
+	Player   int
 	moveList []Move
-	winner   int
+	Winner   int
 }
 
 func NewGame(size int) Game {
@@ -21,10 +21,10 @@ func NewGame(size int) Game {
 	}
 	game := Game{
 		size:     size,
-		board:    newBoard,
-		player:   1,
+		Board:    newBoard,
+		Player:   1,
 		moveList: []Move{},
-		winner:   0,
+		Winner:   0,
 	}
 	return game
 }
@@ -33,11 +33,11 @@ func (g *Game) LegalMoves() []Move {
 	moves := []Move{}
 	for i := 0; i < g.size; i++ {
 		for j := 0; j < g.size; j++ {
-			if g.board[i][j] == 0 {
+			if g.Board[i][j] == 0 {
 				move := Move{
 					s1:     i,
 					s2:     j,
-					player: g.player,
+					player: g.Player,
 				}
 				moves = append(moves, move)
 			}
@@ -47,21 +47,21 @@ func (g *Game) LegalMoves() []Move {
 }
 
 func (g *Game) Move(x int, y int) (Game, error) {
-	move := Move{s1: x, s2: y, player: g.player}
+	move := Move{s1: x, s2: y, player: g.Player}
 	return g.PushMove(move)
 }
 
 func (g *Game) PushMove(move Move) (Game, error) {
-	if move.s1 >= g.size || move.s2 >= g.size || g.board[move.s1][move.s2] != 0 || g.winner != 0 {
+	if move.s1 >= g.size || move.s2 >= g.size || g.Board[move.s1][move.s2] != 0 || g.Winner != 0 {
 		return *g, errors.New("invalid move")
 	}
 	newGame := *g
-	newGame.board = make([][]int, len(g.board))
-	for i := range g.board {
-		newGame.board[i] = make([]int, len(g.board[i]))
-		copy(newGame.board[i], g.board[i])
+	newGame.Board = make([][]int, len(g.Board))
+	for i := range g.Board {
+		newGame.Board[i] = make([]int, len(g.Board[i]))
+		copy(newGame.Board[i], g.Board[i])
 	}
-	newGame.board[move.s1][move.s2] = newGame.player
+	newGame.Board[move.s1][move.s2] = newGame.Player
 	newGame.moveList = append(newGame.moveList, move)
 	newGame.updateGameStatus()
 	return newGame, nil
@@ -70,9 +70,9 @@ func (g *Game) PushMove(move Move) (Game, error) {
 func (g *Game) PrintGameStatus() string {
 	if !g.IsGameOver() {
 		return "game not finished"
-	} else if g.winner == 1 {
+	} else if g.Winner == 1 {
 		return "X gon give it to ya"
-	} else if g.winner == -1 {
+	} else if g.Winner == -1 {
 		return "O-nly I can win"
 	} else {
 		return "it's a draw... zzz"
@@ -80,35 +80,35 @@ func (g *Game) PrintGameStatus() string {
 }
 
 func (g *Game) GetGameStatus() int {
-	return g.winner
+	return g.Winner
 }
 
 func (g *Game) IsGameOver() bool {
-	return g.winner != 0 || len(g.moveList) == g.size*g.size
+	return g.Winner != 0 || len(g.moveList) == g.size*g.size
 }
 
 func (g *Game) PrintBoard() string {
-	boardString := ""
+	BoardString := ""
 	for i := 0; i < g.size; i++ {
 		for j := 0; j < g.size; j++ {
-			switch g.board[i][j] {
+			switch g.Board[i][j] {
 			case 0:
-				boardString += "   "
+				BoardString += "   "
 			case 1:
-				boardString += " X "
+				BoardString += " X "
 			case -1:
-				boardString += " O "
+				BoardString += " O "
 			}
 			if j < g.size-1 {
-				boardString += "|"
+				BoardString += "|"
 			}
 		}
-		boardString += "\n"
+		BoardString += "\n"
 		if i < g.size-1 {
-			boardString += "---|---|---\n"
+			BoardString += "---|---|---\n"
 		}
 	}
-	return boardString
+	return BoardString
 }
 
 func (g *Game) updateGameStatus() {
@@ -120,34 +120,34 @@ func (g *Game) updateGameStatus() {
 		rowSum := 0
 		colSum := 0
 		for j := 0; j < g.size; j++ {
-			rowSum += g.board[i][j]
-			colSum += g.board[j][i]
+			rowSum += g.Board[i][j]
+			colSum += g.Board[j][i]
 			if rowSum == g.size || colSum == g.size {
-				g.winner = 1
+				g.Winner = 1
 				break
 			}
 			if rowSum == -g.size || colSum == -g.size {
-				g.winner = -1
+				g.Winner = -1
 				break
 			}
 		}
-		diagSum1 += g.board[i][i]
-		diagSum2 += g.board[g.size-i-1][i]
+		diagSum1 += g.Board[i][i]
+		diagSum2 += g.Board[g.size-i-1][i]
 		if diagSum1 == g.size || diagSum2 == g.size {
-			g.winner = 1
+			g.Winner = 1
 			break
 		}
 		if diagSum1 == -g.size || diagSum2 == -g.size {
-			g.winner = -1
+			g.Winner = -1
 			break
 		}
 	}
 }
 
 func (g *Game) changePlayer() {
-	if g.player == 1 {
-		g.player = -1
+	if g.Player == 1 {
+		g.Player = -1
 	} else {
-		g.player = 1
+		g.Player = 1
 	}
 }
