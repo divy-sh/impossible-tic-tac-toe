@@ -36,6 +36,7 @@ func main() {
 	statusText = widget.NewLabel("Player X's turn")
 	content := container.NewVBox(grid, statusText)
 
+	w.SetFixedSize(true)
 	w.SetContent(content)
 	w.ShowAndRun()
 }
