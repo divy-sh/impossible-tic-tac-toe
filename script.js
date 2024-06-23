@@ -62,6 +62,7 @@ function restartGame() {
         cell.addEventListener('click', handleCellClick);
     });
     statusString.textContent = `Player ${currentPlayer}'s turn`;
+    currentPlayer = 'X'
     if (aiFirstToggle.checked) {
         aiMove();
     }
